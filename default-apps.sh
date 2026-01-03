@@ -14,25 +14,34 @@ echo ""
 # Install yay (AUR helper)
 # ============================================================================
 
-echo "Installing yay AUR helper..."
+# Check if yay is already installed
+if command -v yay &> /dev/null; then
+    echo "yay is already installed, skipping..."
+    echo ""
+else
+    echo "Installing yay AUR helper..."
 
-# Install base-devel and git if not already installed
-sudo pacman -S --needed --noconfirm base-devel git
+    # Install base-devel and git if not already installed
+    sudo pacman -S --needed --noconfirm base-devel git
 
-# Clone yay repository
-cd /tmp
-git clone https://aur.archlinux.org/yay.git
-cd yay
+    # Clean up any existing yay directory
+    rm -rf /tmp/yay
 
-# Build and install yay
-makepkg -si --noconfirm
+    # Clone yay repository
+    cd /tmp
+    git clone https://aur.archlinux.org/yay.git
+    cd yay
 
-# Clean up
-cd ~
-rm -rf /tmp/yay
+    # Build and install yay
+    makepkg -si --noconfirm
 
-echo "yay installed successfully!"
-echo ""
+    # Clean up
+    cd ~
+    rm -rf /tmp/yay
+
+    echo "yay installed successfully!"
+    echo ""
+fi
 
 # ============================================================================
 # Install applications via yay
@@ -46,12 +55,20 @@ echo "Installing git, GitHub CLI, and zsh..."
 sudo pacman -S --noconfirm git github-cli zsh
 
 # Install Oh My Zsh
-echo "Installing Oh My Zsh..."
-sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+if [ -d "$HOME/.oh-my-zsh" ]; then
+    echo "Oh My Zsh is already installed, skipping..."
+else
+    echo "Installing Oh My Zsh..."
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+fi
 
 # Change default shell to zsh
-echo "Changing default shell to zsh..."
-chsh -s /usr/bin/zsh
+if [ "$SHELL" != "/usr/bin/zsh" ]; then
+    echo "Changing default shell to zsh..."
+    chsh -s /usr/bin/zsh
+else
+    echo "Default shell is already zsh, skipping..."
+fi
 
 # Update package databases
 yay -Sy
@@ -69,9 +86,12 @@ echo "Installing Claude Code..."
 yay -S --noconfirm claude-code
 
 # Configure Claude Code PATH
-echo "Configuring Claude Code PATH..."
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
-source ~/.zshrc
+if grep -q '.local/bin' ~/.zshrc 2>/dev/null; then
+    echo "Claude Code PATH already configured, skipping..."
+else
+    echo "Configuring Claude Code PATH..."
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+fi
 
 # Install Discord
 echo "Installing Discord..."
