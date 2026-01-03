@@ -41,6 +41,18 @@ echo ""
 echo "Installing applications..."
 echo ""
 
+# Install git, GitHub CLI, and zsh from official repos
+echo "Installing git, GitHub CLI, and zsh..."
+sudo pacman -S --noconfirm git github-cli zsh
+
+# Install Oh My Zsh
+echo "Installing Oh My Zsh..."
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+
+# Change default shell to zsh
+echo "Changing default shell to zsh..."
+chsh -s /usr/bin/zsh
+
 # Update package databases
 yay -Sy
 
@@ -56,9 +68,18 @@ yay -S --noconfirm visual-studio-code-bin
 echo "Installing Claude Code..."
 yay -S --noconfirm claude-code
 
+# Configure Claude Code PATH
+echo "Configuring Claude Code PATH..."
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+
 # Install Discord
 echo "Installing Discord..."
 yay -S --noconfirm discord
+
+# Install Google Antigravity
+echo "Installing Google Antigravity..."
+yay -S --noconfirm antigravity
 
 # ============================================================================
 # Installation complete
@@ -70,11 +91,18 @@ echo "Default Applications Installed!"
 echo "==========================================="
 echo ""
 echo "Installed applications:"
+echo "  - git (version control)"
+echo "  - GitHub CLI (gh)"
+echo "  - zsh + Oh My Zsh (shell)"
 echo "  - yay (AUR helper)"
 echo "  - Google Chrome"
 echo "  - Visual Studio Code"
-echo "  - Claude Code"
+echo "  - Claude Code (with PATH configured)"
 echo "  - Discord"
+echo "  - Google Antigravity"
+echo ""
+echo "Note: Your default shell has been changed to zsh."
+echo "      Claude Code is available in ~/.local/bin"
 echo ""
 echo "You can now use these applications from your desktop environment."
 echo ""
