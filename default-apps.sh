@@ -93,6 +93,9 @@ else
     echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
 fi
 
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
+
+
 # Install Discord
 echo "Installing Discord..."
 yay -S --noconfirm discord
