@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 # Default Applications Installation Script
 # This script installs commonly used applications via AUR

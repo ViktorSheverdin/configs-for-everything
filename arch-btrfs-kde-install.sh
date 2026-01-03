@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 # Arch Linux Installation Script - LUKS + btrfs + KDE Plasma
 # WARNING: This script will ERASE ALL DATA on the target disk!
@@ -25,7 +25,7 @@ echo "Installation Options:"
 echo "1) Install Arch Linux with KDE Plasma only"
 echo "2) Install Arch Linux with KDE Plasma + default apps"
 echo ""
-read "?Choose an option (1 or 2): " INSTALL_OPTION
+read -p "Choose an option (1 or 2): " INSTALL_OPTION
 
 # ============================================================================
 # Safety Check
@@ -45,7 +45,7 @@ echo "  Timezone: $TIMEZONE"
 echo ""
 lsblk
 echo ""
-read "?Press Enter to continue or Ctrl+C to abort..."
+read -p "Press Enter to continue or Ctrl+C to abort..."
 
 # ============================================================================
 # Partition the disk using sfdisk
@@ -329,7 +329,7 @@ if [[ "$INSTALL_OPTION" == "2" ]]; then
     echo ""
 
     # Download and execute default apps installation script
-    arch-chroot /mnt /bin/bash -c "curl -L https://raw.githubusercontent.com/ViktorSheverdin/configs-for-everything/main/default-apps.zsh -o /tmp/default-apps.zsh && chmod +x /tmp/default-apps.zsh && su - $USERNAME -c 'zsh /tmp/default-apps.zsh'"
+    arch-chroot /mnt /bin/bash -c "curl -L https://raw.githubusercontent.com/ViktorSheverdin/configs-for-everything/main/default-apps.sh -o /tmp/default-apps.sh && chmod +x /tmp/default-apps.sh && su - $USERNAME -c 'bash /tmp/default-apps.sh'"
 
     echo ""
     echo "Default applications installed!"
