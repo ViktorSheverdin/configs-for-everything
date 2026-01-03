@@ -329,7 +329,7 @@ if [[ "$INSTALL_OPTION" == "2" ]]; then
     echo ""
 
     # Download and execute default apps installation script
-    arch-chroot /mnt /bin/bash -c "curl -L https://raw.githubusercontent.com/ViktorSheverdin/configs-for-everything/main/default-apps.zsh -o /tmp/default-apps.zsh && chmod +x /tmp/default-apps.zsh && su - $USERNAME -c 'zsh /tmp/default-apps.zsh'"
+    arch-chroot /mnt /bin/bash -c "curl -L https://github.com/ViktorSheverdin/configs-for-everything/blob/main/default-apps.zsh -o /tmp/default-apps.zsh && chmod +x /tmp/default-apps.zsh && su - $USERNAME -c 'zsh /tmp/default-apps.zsh'"
 
     echo ""
     echo "Default applications installed!"
