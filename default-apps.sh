@@ -70,6 +70,14 @@ else
     echo "Default shell is already zsh, skipping..."
 fi
 
+# Update Konsole to use zsh
+cat >> ~/.local/share/konsole/viktor-zsh.profile << KONSOLE_EOF
+[General]
+Command=/usr/bin/zsh
+Name=viktor-zsh
+Parent=FALLBACK/
+KONSOLE_EOF
+
 # Update package databases
 yay -Sy
 
@@ -103,6 +111,21 @@ yay -S --noconfirm discord
 # Install Google Antigravity
 echo "Installing Google Antigravity..."
 yay -S --noconfirm antigravity
+
+# Install Display Link drivers
+echo "Install Display Link drivers"
+# Install drivers with evdi-dkms
+yay -S displaylink evdi-dkms --noconfirm
+# Enable and start the displaylink service
+sudo systemctl enable displaylink.service
+sudo systemctl start displaylink.service
+echo ""
+echo "Display Link drivers installed and service started. Service status:"
+sudo systemctl status displaylink.service
+
+# Install btop
+echo "Installing btop system monitor..."
+yay -S --noconfirm btop
 
 # ============================================================================
 # Installation complete
