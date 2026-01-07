@@ -127,6 +127,18 @@ sudo systemctl status displaylink.service
 echo "Installing btop system monitor..."
 yay -S --noconfirm btop
 
+# Install openssh
+echo "Installing openssh..."
+sudo pacman -S --noconfirm openssh
+ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+# Install npm, yarn and pnpm
+echo "Installing yarn and pnpm..."
+sudo pacman -S npm --noconfirm
+sudp pacman -S yarn --noconfirm
+sudo pacman -S pnpm --noconfirm
+sudo pacman -S nodejs --noconfirm
+
 # Install KDE Plasma theme
 # Colorful-Dark-Plasma
 # https://www.pling.com/p/2091077
