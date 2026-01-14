@@ -16,6 +16,16 @@ TIMEZONE="America/Vancouver"     # Timezone (see /usr/share/zoneinfo/)
 LOCALE="en_US.UTF-8"            # System locale
 KEYMAP="us"                      # Console keymap
 
+# Add after the configuration variables
+cleanup_on_error() {
+    echo "Cleaning up..."
+    umount -R /mnt 2>/dev/null || true
+    cryptsetup close cryptroot 2>/dev/null || true
+}
+
+trap cleanup_on_error ERR
+
+
 # ============================================================================
 # Installation Options
 # ============================================================================
