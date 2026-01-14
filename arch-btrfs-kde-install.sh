@@ -326,14 +326,6 @@ CHROOT
 # Set passwords
 # ============================================================================
 
-echo ""
-echo "Setting root password..."
-arch-chroot /mnt passwd
-
-echo ""
-echo "Setting password for user $USERNAME..."
-arch-chroot /mnt passwd "$USERNAME"
-
 # ============================================================================
 # Installation complete
 # ============================================================================
