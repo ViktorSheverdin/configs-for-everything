@@ -148,11 +148,10 @@ echo "Mounting filesystems..."
 # Mount root subvolume
 mount -o subvol=@ /dev/mapper/cryptroot /mnt
 
-# Create mount points
+# Create mount points for home and snapshots
 mkdir -p /mnt/home
 mkdir -p /mnt/.snapshots
 mkdir -p /mnt/boot
-mkdir -p /mnt/boot/efi
 
 # Mount home subvolume
 mount -o subvol=@home /dev/mapper/cryptroot /mnt/home
@@ -163,8 +162,12 @@ mount -o subvol=@snapshots /dev/mapper/cryptroot /mnt/.snapshots
 # Mount boot partition
 mount "$BOOT_PART" /mnt/boot
 
+# NOW create the efi directory (after boot is mounted)
+mkdir -p /mnt/boot/efi
+
 # Mount EFI partition
 mount "$EFI_PART" /mnt/boot/efi
+
 
 # ============================================================================
 # Load kernel module
