@@ -102,7 +102,11 @@ cryptsetup open "$ROOT_PART" cryptroot
 # ============================================================================
 # Create btrfs filesystem and subvolumes
 # ============================================================================
-
+# Verify cryptroot is open
+if [[ ! -e /dev/mapper/cryptroot ]]; then
+    echo "ERROR: Failed to open LUKS container"
+    exit 1
+fi
 echo ""
 echo "Creating btrfs filesystem and subvolumes..."
 
