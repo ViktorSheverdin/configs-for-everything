@@ -247,18 +247,18 @@ pacman -S --noconfirm xorg
 pacman -S --noconfirm plasma sddm
 
 # Install system utilities
-pacman -S --noconfirm sudo timeshift cronie
+pacman -S --noconfirm sudo cronie
 
-$ Install Nvidia drivers if NVIDIA GPU is detected
+# Install Nvidia drivers if NVIDIA GPU is detected
 if lspci | grep -i nvidia; then
-    pacman -S --noconfirm nvidia mesa nvidia-utils nvidia-lts
+    pacman -S --noconfirm nvidia nvidia-utils
 fi
 
 # Enable display manager and NetworkManager
 systemctl enable sddm
 systemctl enable NetworkManager
 
-# Create user
+# Create user (using bash as default shell - switch to zsh later with 'chsh -s /bin/zsh')
 useradd -m -G wheel -s /bin/bash $USERNAME
 
 # Enable wheel group in sudoers
@@ -294,8 +294,9 @@ cat > /etc/timeshift/timeshift.json << 'TIMESHIFT_EOF'
 }
 TIMESHIFT_EOF
 
-# Enable timeshift systemd timer for automatic snapshots
+# Enable services for snapshots
 systemctl enable cronie.service
+systemctl enable grub-btrfsd.service
 
 CHROOT
 
@@ -341,7 +342,7 @@ if [[ "$INSTALL_OPTION" == "2" ]]; then
     echo ""
 
     # Download and execute default apps installation script
-    arch-chroot /mnt /bin/bash -c "curl -L https://raw.githubusercontent.com/ViktorSheverdin/configs-for-everything/main/default-apps.sh -o /tmp/default-apps.sh && chmod +x /tmp/default-apps.sh && su - $USERNAME -c 'bash /tmp/default-apps.sh'"
+    arch-chroot /mnt /bin/bash -c "curl -L https://raw.githubusercontent.com/ViktorSheverdin/configs-for-everything/main/default-apps.sh -o /tmp/default-apps.sh && chmod +x /tmp/default-apps.sh && bash /tmp/default-apps.sh"
 
     echo ""
     echo "Default applications installed!"
