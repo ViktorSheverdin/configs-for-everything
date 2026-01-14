@@ -106,7 +106,7 @@ cryptsetup open "$ROOT_PART" cryptroot
 echo ""
 echo "Creating btrfs filesystem and subvolumes..."
 
-mkfs.btrfs /dev/mapper/cryptroot
+mkfs.btrfs -f /dev/mapper/cryptroot
 
 # Mount to create subvolumes
 mount /dev/mapper/cryptroot /mnt
