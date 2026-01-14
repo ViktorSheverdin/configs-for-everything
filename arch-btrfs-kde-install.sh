@@ -106,7 +106,12 @@ echo ""
 echo "Setting up LUKS encryption on $ROOT_PART..."
 echo "You will be prompted to enter a passphrase for disk encryption."
 
+# Wipe partition signatures
+wipefs -af "$ROOT_PART"
+
+# Format with LUKS interactively
 cryptsetup luksFormat "$ROOT_PART"
+
 cryptsetup open "$ROOT_PART" cryptroot
 
 # ============================================================================
