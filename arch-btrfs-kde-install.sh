@@ -160,13 +160,31 @@ modprobe dm_mod
 echo ""
 echo "Installing base system..."
 
-pacstrap /mnt base linux linux-firmware linux-headers
+# This will install some packages to "bootstrap" methaphorically our system. Feel free to add the ones you want
+# "base, linux, linux-firmware" are needed. If you want a more stable kernel, then swap linux with linux-lts
+# "base-devel" base development packages
+# "git" to install the git vcs
+# "btrfs-progs" are user-space utilities for file system management ( needed to harness the potential of btrfs )
+# "grub" the bootloader
+# "efibootmgr" needed to install grub
+# "grub-btrfs" adds btrfs support for the grub bootloader and enables the user to directly boot from snapshots
+# "inotify-tools" used by grub btrfsd deamon to automatically spot new snapshots and update grub entries
+# "timeshift" a GUI app to easily create,plan and restore snapshots using BTRFS capabilities
+# "amd-ucode" microcode updates for the cpu. If you have an intel one use "intel-ucode"
+# "vim" my goto editor, if unfamiliar use nano
+# "networkmanager" to manage Internet connections both wired and wireless ( it also has an applet package network-manager-applet )
+# "pipewire pipewire-alsa pipewire-pulse pipewire-jack" for the new audio framework replacing pulse and jack. 
+# "wireplumber" the pipewire session manager.
+# "reflector" to manage mirrors for pacman
+# "zsh" my favourite shell
+# "zsh-completions" for zsh additional completions
+# "zsh-autosuggestions" very useful, it helps writing commands [ Needs configuration in .zshrc ]
+# "openssh" to use ssh and manage keys
+# "man" for manual pages
+# "sudo" to run commands as other users
+pacstrap -K /mnt base base-devel linux linux-firmware git btrfs-progs grub efibootmgr grub-btrfs inotify-tools timeshift vim networkmanager pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber reflector zsh zsh-completions zsh-autosuggestions openssh man sudo
 
 echo ""
-echo "Installing essential tools..."
-
-pacstrap /mnt nano vim networkmanager btrfs-progs e2fsprogs dosfstools
-
 # ============================================================================
 # Generate fstab
 # ============================================================================
@@ -183,12 +201,7 @@ genfstab -U -p /mnt >> /mnt/etc/fstab
 echo ""
 echo "Configuring system..."
 
-arch-chroot /mnt /bin/bash << CHROOT
-
-# Initialize pacman keyring
-pacman-key --init
-pacman-key --populate archlinux
-pacman-key --refresh-keys
+arch-chroot /mnt << CHROOT
 
 # Set timezone
 ln -sf /usr/share/zoneinfo/$TIMEZONE /etc/localtime
@@ -207,7 +220,6 @@ echo "KEYMAP=$KEYMAP" > /etc/vconsole.conf
 echo "$HOSTNAME" > /etc/hostname
 
 
-
 # Configure mkinitcpio for encryption and btrfs
 sed -i 's/^MODULES=.*/MODULES=(btrfs)/' /etc/mkinitcpio.conf
 sed -i 's/^HOOKS=.*/HOOKS=(base systemd autodetect microcode modconf kms keyboard sd-vconsole block sd-encrypt filesystems fsck)/' /etc/mkinitcpio.conf
@@ -215,17 +227,15 @@ sed -i 's/^HOOKS=.*/HOOKS=(base systemd autodetect microcode modconf kms keyboar
 # Generate initramfs
 mkinitcpio -P
 
-# Install GRUB and EFI boot manager
-pacman -S --noconfirm grub efibootmgr
-
-# Install GRUB to EFI partition
-grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
-
 # Get UUID of encrypted partition
 UUID=\$(blkid -s UUID -o value $ROOT_PART)
 
 # Update GRUB configuration
 sed -i "s|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 quiet rd.luks.name=\${UUID}=cryptroot root=/dev/mapper/cryptroot rootflags=subvol=@\"|" /etc/default/grub
+
+# Install GRUB to EFI partition
+grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
+
 
 # Generate GRUB config
 grub-mkconfig -o /boot/grub/grub.cfg
@@ -236,11 +246,13 @@ pacman -S --noconfirm xorg
 # Install desktop environment
 pacman -S --noconfirm plasma sddm
 
-# Install desktop applications
-pacman -S --noconfirm kde-applications
-
 # Install system utilities
 pacman -S --noconfirm sudo timeshift cronie
+
+$ Install Nvidia drivers if NVIDIA GPU is detected
+if lspci | grep -i nvidia; then
+    pacman -S --noconfirm nvidia mesa nvidia-utils nvidia-lts
+fi
 
 # Enable display manager and NetworkManager
 systemctl enable sddm
