@@ -337,6 +337,15 @@ if [[ "$INSTALL_OPTION" == "2" ]]; then
     echo "Default applications installed!"
 fi
 
+echo ""
+echo "Setting root password..."
+passwd
+
+echo ""
+echo "Setting password for user $USERNAME..."
+passwd $USERNAME
+
+
 CHROOT
 
 # ============================================================================
