@@ -320,6 +320,23 @@ TIMESHIFT_EOF
 systemctl enable cronie.service
 systemctl enable grub-btrfsd.service
 
+# ============================================================================
+# Install default apps if selected (MOVE THIS INSIDE THE CHROOT)
+# ============================================================================
+
+if [[ "$INSTALL_OPTION" == "2" ]]; then
+    echo ""
+    echo "Installing default applications..."
+    echo ""
+    
+    curl -L https://raw.githubusercontent.com/ViktorSheverdin/configs-for-everything/main/default-apps.sh -o /tmp/default-apps.sh
+    chmod +x /tmp/default-apps.sh
+    bash /tmp/default-apps.sh
+    
+    echo ""
+    echo "Default applications installed!"
+fi
+
 CHROOT
 
 # ============================================================================
@@ -345,19 +362,3 @@ echo "  - You'll be prompted for your LUKS passphrase"
 echo "  - Login with username: $USERNAME"
 echo "  - Run: sudo pacman -Syu"
 echo ""
-
-# ============================================================================
-# Install default apps if selected
-# ============================================================================
-
-if [[ "$INSTALL_OPTION" == "2" ]]; then
-    echo ""
-    echo "Installing default applications..."
-    echo ""
-
-    # Download and execute default apps installation script
-    arch-chroot /mnt /bin/bash -c "curl -L https://raw.githubusercontent.com/ViktorSheverdin/configs-for-everything/main/default-apps.sh -o /tmp/default-apps.sh && chmod +x /tmp/default-apps.sh && bash /tmp/default-apps.sh"
-
-    echo ""
-    echo "Default applications installed!"
-fi
