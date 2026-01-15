@@ -320,6 +320,14 @@ TIMESHIFT_EOF
 systemctl enable cronie.service
 systemctl enable grub-btrfsd.service
 
+echo ""
+echo "Setting root password..."
+passwd
+
+echo ""
+echo "Setting password for user $USERNAME..."
+passwd $USERNAME
+
 # ============================================================================
 # Install default apps if selected (MOVE THIS INSIDE THE CHROOT)
 # ============================================================================
@@ -337,13 +345,7 @@ if [[ "$INSTALL_OPTION" == "2" ]]; then
     echo "Default applications installed!"
 fi
 
-echo ""
-echo "Setting root password..."
-passwd
 
-echo ""
-echo "Setting password for user $USERNAME..."
-passwd $USERNAME
 
 
 CHROOT
