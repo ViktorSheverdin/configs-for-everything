@@ -356,13 +356,23 @@ CHROOT
 # Set passwords
 # ============================================================================
 
+
+CHROOT
+
+# ============================================================================
+# Set passwords (OUTSIDE the heredoc, using /dev/tty for input)
+# ============================================================================
+
 echo ""
 echo "Setting root password..."
-passwd
+arch-chroot /mnt passwd < /dev/tty
 
 echo ""
 echo "Setting password for user $USERNAME..."
-passwd $USERNAME
+arch-chroot /mnt passwd "$USERNAME" < /dev/tty
+
+# Verify home directory ownership
+arch-chroot /mnt chown -R $USERNAME:$USERNAME /home/$USERNAME
 
 
 
