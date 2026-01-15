@@ -62,7 +62,12 @@ echo ""
 
 # Install git, GitHub CLI, and zsh from official repos (as root - OK)
 echo "Installing git, GitHub CLI, and zsh..."
-pacman -S --noconfirm git github-cli zsh
+sudo pacman -S --noconfirm git github-cli zsh
+
+# Install npm, yarn, pnpm, nodejs, python (as root - OK)
+echo "Installing Node.js tools and Python..."
+pacman -S --noconfirm npm yarn pnpm nodejs python
+
 
 # Install Oh My Zsh as the user
 if [ -d "/home/$USERNAME/.oh-my-zsh" ]; then
@@ -79,7 +84,7 @@ echo "Changing default shell to zsh for $USERNAME..."
 chsh -s /usr/bin/zsh $USERNAME
 
 # Create Konsole profile directory and file as the user
-sudo -u $USERNAME bash << EOFKONSOLE
+sudo -u $USERNAME bash << 'EOFKONSOLE'
 mkdir -p /home/$USERNAME/.local/share/konsole
 cat > /home/$USERNAME/.local/share/konsole/viktor-zsh.profile << 'KONSOLE_EOF'
 [General]
@@ -89,6 +94,7 @@ Parent=FALLBACK/
 KONSOLE_EOF
 EOFKONSOLE
 
+
 # Install AUR packages as the user
 echo "Installing Google Chrome..."
 sudo -u $USERNAME yay -S --noconfirm google-chrome
@@ -97,7 +103,7 @@ echo "Installing Visual Studio Code..."
 sudo -u $USERNAME yay -S --noconfirm visual-studio-code-bin
 
 echo "Installing Claude Code..."
-sudo -u $USERNAME yay -S --noconfirm claude-code
+sudo -u $USERNAME curl -fsSL https://claude.ai/install.sh | bash
 
 # Configure Claude Code PATH in user's shell configs
 sudo -u $USERNAME bash << 'EOFPATH'
@@ -126,7 +132,7 @@ echo "Display Link drivers installed and service started. Service status:"
 systemctl status displaylink.service --no-pager
 
 echo "Installing btop system monitor..."
-sudo -u $USERNAME yay -S --noconfirm btop
+pacman -S --noconfirm btop
 
 # Install openssh (as root - OK)
 echo "Installing openssh..."
@@ -138,10 +144,6 @@ mkdir -p ~/.ssh
 chmod 700 ~/.ssh
 ssh-keyscan github.com >> ~/.ssh/known_hosts
 EOFSSH
-
-# Install npm, yarn, pnpm, nodejs, python (as root - OK)
-echo "Installing Node.js tools and Python..."
-pacman -S --noconfirm npm yarn pnpm nodejs python
 
 # ============================================================================
 # Installation complete

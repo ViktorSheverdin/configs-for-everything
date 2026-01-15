@@ -229,6 +229,8 @@ echo "Installing base system..."
 
 # This will install some packages to "bootstrap" methaphorically our system. Feel free to add the ones you want
 # "base, linux, linux-firmware" are needed. If you want a more stable kernel, then swap linux with linux-lts
+# "linux-headers" are needed if you plan to compile any kernel modules ( e.g. nvidia drivers from the AUR )
+# "linux-lts, linux-lts-headers" if you want the LTS kernel instead of the default one
 # "base-devel" base development packages
 # "git" to install the git vcs
 # "btrfs-progs" are user-space utilities for file system management ( needed to harness the potential of btrfs )
@@ -249,8 +251,8 @@ echo "Installing base system..."
 # "openssh" to use ssh and manage keys
 # "man" for manual pages
 # "sudo" to run commands as other users
-pacstrap -K /mnt base base-devel linux linux-firmware git btrfs-progs grub efibootmgr grub-btrfs inotify-tools timeshift vim networkmanager pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber reflector zsh zsh-completions zsh-autosuggestions openssh man sudo
-pacstrap -K /mnt konsole dolphin kate ark spectacle gwenview okular kcalc partitionmanager plasma-systemmonitor
+pacstrap -K /mnt base base-devel linux linux-firmware linux-headers linux-lts linux-lts-headers git btrfs-progs grub efibootmgr grub-btrfs inotify-tools timeshift vim networkmanager pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber reflector zsh zsh-completions zsh-autosuggestions openssh man sudo
+pacstrap -K /mnt konsole dolphin kate ark spectacle gwenview okular kcalc partitionmanager plasma-systemmonitor xclip
 
 echo ""
 # ============================================================================
