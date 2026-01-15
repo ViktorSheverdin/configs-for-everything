@@ -250,6 +250,7 @@ echo "Installing base system..."
 # "man" for manual pages
 # "sudo" to run commands as other users
 pacstrap -K /mnt base base-devel linux linux-firmware git btrfs-progs grub efibootmgr grub-btrfs inotify-tools timeshift vim networkmanager pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber reflector zsh zsh-completions zsh-autosuggestions openssh man sudo
+pacstrap -K /mnt konsole dolphin kate ark spectacle gwenview okular kcalc partitionmanager plasma-systemmonitor
 
 echo ""
 # ============================================================================
