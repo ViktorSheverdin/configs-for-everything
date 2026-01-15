@@ -324,24 +324,7 @@ TIMESHIFT_EOF
 systemctl enable cronie.service
 systemctl enable grub-btrfsd.service
 
-echo ""
-echo "Setting root password..."
-passwd
 
-echo ""
-echo "Setting password for user $USERNAME..."
-passwd $USERNAME
-
-echo ""
-echo "Setting password for user $USERNAME..."
-passwd $USERNAME
-
-# Verify the password was set
-if passwd -S $USERNAME | grep -q "P"; then
-    echo "Password set successfully for $USERNAME"
-else
-    echo "ERROR: Password not set properly for $USERNAME"
-fi
 
 # Verify home directory ownership
 chown -R $USERNAME:$USERNAME /home/$USERNAME
@@ -372,6 +355,16 @@ CHROOT
 # ============================================================================
 # Set passwords
 # ============================================================================
+
+echo ""
+echo "Setting root password..."
+passwd
+
+echo ""
+echo "Setting password for user $USERNAME..."
+passwd $USERNAME
+
+
 
 # ============================================================================
 # Installation complete
