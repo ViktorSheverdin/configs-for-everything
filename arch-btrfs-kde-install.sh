@@ -27,6 +27,51 @@ trap cleanup_on_error ERR
 
 
 # ============================================================================
+# Get passwords upfront (before any heredoc operations)
+# ============================================================================
+
+echo ""
+echo "==========================================="
+echo "Password Setup"
+echo "==========================================="
+echo ""
+echo "Let's set up passwords before we begin installation."
+echo ""
+
+# Get root password
+while true; do
+    read -s -p "Enter root password: " ROOT_PASS
+    echo ""
+    read -s -p "Confirm root password: " ROOT_PASS_CONFIRM
+    echo ""
+    
+    if [ -n "$ROOT_PASS" ] && [ "$ROOT_PASS" = "$ROOT_PASS_CONFIRM" ]; then
+        echo "✓ Root password confirmed!"
+        break
+    else
+        echo "✗ Passwords do not match or are empty. Please try again."
+        echo ""
+    fi
+done
+
+# Get user password
+echo ""
+while true; do
+    read -s -p "Enter password for $USERNAME: " USER_PASS
+    echo ""
+    read -s -p "Confirm password for $USERNAME: " USER_PASS_CONFIRM
+    echo ""
+    
+    if [ -n "$USER_PASS" ] && [ "$USER_PASS" = "$USER_PASS_CONFIRM" ]; then
+        echo "✓ User password confirmed!"
+        break
+    else
+        echo "✗ Passwords do not match or are empty. Please try again."
+        echo ""
+    fi
+done
+
+# ============================================================================
 # Installation Options
 # ============================================================================
 
@@ -329,23 +374,11 @@ systemctl enable grub-btrfsd.service
 # Verify home directory ownership
 chown -R $USERNAME:$USERNAME /home/$USERNAME
 
-# Set passwords
-echo ""
-echo "==================================="
-echo "Setting up passwords..."
-echo "==================================="
-echo ""
-echo "Setting root password:"
-passwd
+# Set passwords using chpasswd (variables expanded from outer script)
+echo "root:$ROOT_PASS" | chpasswd
+echo "$USERNAME:$USER_PASS" | chpasswd
 
-echo ""
-echo "Setting password for user $USERNAME:"
-passwd $USERNAME
-
-echo ""
-echo "Passwords set successfully!"
-
-
+echo "Passwords configured successfully!"
 
 # ============================================================================
 # Install default apps if selected (MOVE THIS INSIDE THE CHROOT)
