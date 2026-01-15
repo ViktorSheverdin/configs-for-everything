@@ -283,8 +283,12 @@ systemctl enable NetworkManager
 # Create user (using bash as default shell - switch to zsh later with 'chsh -s /bin/zsh')
 useradd -m -G wheel -s /bin/bash $USERNAME
 
-# Enable wheel group in sudoers
-echo "%wheel ALL=(ALL:ALL) ALL" >> /etc/sudoers.d/wheel
+# Enable wheel group in sudoers - create directory first
+mkdir -p /etc/sudoers.d
+chmod 750 /etc/sudoers.d
+echo "%wheel ALL=(ALL:ALL) ALL" > /etc/sudoers.d/wheel
+chmod 440 /etc/sudoers.d/wheel
+
 
 # Configure Timeshift for automatic snapshots
 mkdir -p /etc/timeshift
@@ -327,6 +331,21 @@ passwd
 echo ""
 echo "Setting password for user $USERNAME..."
 passwd $USERNAME
+
+echo ""
+echo "Setting password for user $USERNAME..."
+passwd $USERNAME
+
+# Verify the password was set
+if passwd -S $USERNAME | grep -q "P"; then
+    echo "Password set successfully for $USERNAME"
+else
+    echo "ERROR: Password not set properly for $USERNAME"
+fi
+
+# Verify home directory ownership
+chown -R $USERNAME:$USERNAME /home/$USERNAME
+
 
 # ============================================================================
 # Install default apps if selected (MOVE THIS INSIDE THE CHROOT)
