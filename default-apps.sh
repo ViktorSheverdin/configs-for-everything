@@ -5,9 +5,16 @@
 
 set -e  # Exit on error
 
+# Get the username (passed as argument or use current user)
+USERNAME="${1:-$SUDO_USER}"
+if [ -z "$USERNAME" ]; then
+    USERNAME="viktor"  # Fallback to viktor if can't determine
+fi
+
 echo "==========================================="
 echo "Installing Default Applications"
 echo "==========================================="
+echo "Installing for user: $USERNAME"
 echo ""
 
 # ============================================================================
@@ -21,9 +28,11 @@ if command -v yay &> /dev/null; then
 else
     echo "Installing yay AUR helper..."
 
-    # Install base-devel and git if not already installed
-    sudo pacman -S --needed --noconfirm base-devel git
+    # Install base-devel and git if not already installed (as root - OK)
+    pacman -S --needed --noconfirm base-devel git
 
+    # Install yay as the user (NOT root)
+    sudo -u $USERNAME bash << 'EOFYAY'
     # Clean up any existing yay directory
     rm -rf /tmp/yay
 
@@ -38,130 +47,102 @@ else
     # Clean up
     cd ~
     rm -rf /tmp/yay
+EOFYAY
 
     echo "yay installed successfully!"
     echo ""
 fi
 
 # ============================================================================
-# Install applications via yay
+# Install applications
 # ============================================================================
 
 echo "Installing applications..."
 echo ""
 
-# Install git, GitHub CLI, and zsh from official repos
+# Install git, GitHub CLI, and zsh from official repos (as root - OK)
 echo "Installing git, GitHub CLI, and zsh..."
-sudo pacman -S --noconfirm git github-cli zsh
+pacman -S --noconfirm git github-cli zsh
 
-# Install Oh My Zsh
-if [ -d "$HOME/.oh-my-zsh" ]; then
+# Install Oh My Zsh as the user
+if [ -d "/home/$USERNAME/.oh-my-zsh" ]; then
     echo "Oh My Zsh is already installed, skipping..."
 else
     echo "Installing Oh My Zsh..."
+    sudo -u $USERNAME bash << 'EOFOMZ'
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+EOFOMZ
 fi
 
 # Change default shell to zsh
-if [ "$SHELL" != "/usr/bin/zsh" ]; then
-    echo "Changing default shell to zsh..."
-    chsh -s /usr/bin/zsh
-else
-    echo "Default shell is already zsh, skipping..."
-fi
+echo "Changing default shell to zsh for $USERNAME..."
+chsh -s /usr/bin/zsh $USERNAME
 
-# Update Konsole to use zsh
-cat >> ~/.local/share/konsole/viktor-zsh.profile << KONSOLE_EOF
+# Create Konsole profile directory and file as the user
+sudo -u $USERNAME bash << EOFKONSOLE
+mkdir -p /home/$USERNAME/.local/share/konsole
+cat > /home/$USERNAME/.local/share/konsole/viktor-zsh.profile << 'KONSOLE_EOF'
 [General]
 Command=/usr/bin/zsh
 Name=viktor-zsh
 Parent=FALLBACK/
 KONSOLE_EOF
+EOFKONSOLE
 
-# Update package databases
-yay -Sy
-
-# Install Google Chrome
+# Install AUR packages as the user
 echo "Installing Google Chrome..."
-yay -S --noconfirm google-chrome
+sudo -u $USERNAME yay -S --noconfirm google-chrome
 
-# Install Visual Studio Code
 echo "Installing Visual Studio Code..."
-yay -S --noconfirm visual-studio-code-bin
+sudo -u $USERNAME yay -S --noconfirm visual-studio-code-bin
 
-# Install Claude Code CLI
 echo "Installing Claude Code..."
-yay -S --noconfirm claude-code
+sudo -u $USERNAME yay -S --noconfirm claude-code
 
-# Configure Claude Code PATH
-if grep -q '.local/bin' ~/.zshrc 2>/dev/null; then
-    echo "Claude Code PATH already configured, skipping..."
-else
-    echo "Configuring Claude Code PATH..."
+# Configure Claude Code PATH in user's shell configs
+sudo -u $USERNAME bash << 'EOFPATH'
+if ! grep -q '.local/bin' ~/.zshrc 2>/dev/null; then
     echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
 fi
+if ! grep -q '.local/bin' ~/.bashrc 2>/dev/null; then
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+fi
+EOFPATH
 
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
-
-
-# Install Discord
 echo "Installing Discord..."
-yay -S --noconfirm discord
+sudo -u $USERNAME yay -S --noconfirm discord
 
-# Install Google Antigravity
 echo "Installing Google Antigravity..."
-yay -S --noconfirm antigravity
+sudo -u $USERNAME yay -S --noconfirm antigravity
 
-# Install Display Link drivers
-echo "Install Display Link drivers"
-# Install drivers with evdi-dkms
-yay -S displaylink evdi-dkms --noconfirm
-# Enable and start the displaylink service
-sudo systemctl enable displaylink.service
-sudo systemctl start displaylink.service
+echo "Installing Display Link drivers..."
+sudo -u $USERNAME yay -S --noconfirm displaylink evdi-dkms
+
+# Enable and start the displaylink service (as root - OK)
+systemctl enable displaylink.service
+systemctl start displaylink.service
 echo ""
 echo "Display Link drivers installed and service started. Service status:"
-sudo systemctl status displaylink.service
+systemctl status displaylink.service --no-pager
 
-# Install btop
 echo "Installing btop system monitor..."
+sudo -u $USERNAME yay -S --noconfirm btop
 
-yay -S --noconfirm btop
-# Install openssh
+# Install openssh (as root - OK)
 echo "Installing openssh..."
-sudo pacman -S --noconfirm openssh
+pacman -S --noconfirm openssh
+
+# Setup SSH known_hosts as the user
+sudo -u $USERNAME bash << 'EOFSSH'
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
 ssh-keyscan github.com >> ~/.ssh/known_hosts
+EOFSSH
 
-# Install npm, yarn and pnpm
-echo "Installing yarn and pnpm..."
-sudo pacman -S npm --noconfirm
-sudo pacman -S yarn --noconfirm
-sudo pacman -S pnpm --noconfirm
-sudo pacman -S nodejs --noconfirm
+# Install npm, yarn, pnpm, nodejs, python (as root - OK)
+echo "Installing Node.js tools and Python..."
+pacman -S --noconfirm npm yarn pnpm nodejs python
 
-sudo pacman -S python3 --noconfirm
-
-echo "Colorful theme installed successfully!"
-echo ""
-echo "✓ Desktop theme applied"
-echo "✓ Lock screen configured"
-echo "✓ Wallpaper set to: Colorful-Circle Wallpaper Without Logo"
-echo "✓ Kvantum widget style enabled (for transparency)"
-echo "✓ Blur effects enabled"
-echo ""
-echo "IMPORTANT - For full transparency/blur effects:"
-echo "  Log out and log back in (recommended)"
-echo "  Some transparency may appear immediately, but logout ensures everything works"
-echo ""
-echo "To see the SDDM login screen theme:"
-echo "  You MUST log out or restart your system"
-echo ""
-echo "To test the lock screen theme:"
-echo "  Press Meta+L or lock your screen from the menu"
-echo ""
-echo "Optional - Fine-tune theme components:"
-echo "  Go to System Settings → Appearance"
-echo ""
 # ============================================================================
 # Installation complete
 # ============================================================================
@@ -183,8 +164,10 @@ echo "  - Discord"
 echo "  - Google Antigravity"
 echo "  - Display Link drivers"
 echo "  - btop (system monitor)"
-echo "  - Colorful KDE Plasma Theme"
+echo "  - Node.js, npm, yarn, pnpm"
+echo "  - Python 3"
 echo ""
-echo "Note: Your default shell has been changed to zsh."
+echo "Note: Default shell has been changed to zsh for $USERNAME"
 echo "      Claude Code is available in ~/.local/bin"
+echo "      Log out and back in for shell changes to take effect"
 echo ""
