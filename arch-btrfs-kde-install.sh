@@ -329,6 +329,23 @@ systemctl enable grub-btrfsd.service
 # Verify home directory ownership
 chown -R $USERNAME:$USERNAME /home/$USERNAME
 
+# Set passwords
+echo ""
+echo "==================================="
+echo "Setting up passwords..."
+echo "==================================="
+echo ""
+echo "Setting root password:"
+passwd
+
+echo ""
+echo "Setting password for user $USERNAME:"
+passwd $USERNAME
+
+echo ""
+echo "Passwords set successfully!"
+
+
 
 # ============================================================================
 # Install default apps if selected (MOVE THIS INSIDE THE CHROOT)
@@ -351,56 +368,6 @@ fi
 
 
 CHROOT
-
-# ============================================================================
-# Set passwords (using chpasswd for reliability)
-# ============================================================================
-
-echo ""
-echo "Setting root password..."
-while true; do
-    read -s -p "Enter root password: " ROOT_PASS
-    echo ""
-    read -s -p "Confirm root password: " ROOT_PASS_CONFIRM
-    echo ""
-    
-    if [ "$ROOT_PASS" = "$ROOT_PASS_CONFIRM" ]; then
-        echo "root:$ROOT_PASS" | arch-chroot /mnt chpasswd
-        echo "Root password set successfully!"
-        break
-    else
-        echo "Passwords do not match. Please try again."
-        echo ""
-    fi
-done
-
-echo ""
-echo "Setting password for user $USERNAME..."
-while true; do
-    read -s -p "Enter password for $USERNAME: " USER_PASS
-    echo ""
-    read -s -p "Confirm password for $USERNAME: " USER_PASS_CONFIRM
-    echo ""
-    
-    if [ "$USER_PASS" = "$USER_PASS_CONFIRM" ]; then
-        echo "$USERNAME:$USER_PASS" | arch-chroot /mnt chpasswd
-        echo "Password set successfully for $USERNAME!"
-        break
-    else
-        echo "Passwords do not match. Please try again."
-        echo ""
-    fi
-done
-
-# Verify the password was set
-if arch-chroot /mnt passwd -S $USERNAME | grep -q "P"; then
-    echo "✓ Password verified for $USERNAME"
-else
-    echo "⚠ Warning: Password verification failed for $USERNAME"
-fi
-
-# Verify home directory ownership
-arch-chroot /mnt chown -R $USERNAME:$USERNAME /home/$USERNAME
 
 # ============================================================================
 # Installation complete
