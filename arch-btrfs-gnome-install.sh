@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Arch Linux Installation Script - LUKS + btrfs + KDE Plasma
+# Arch Linux Installation Script - LUKS + btrfs + GNOME
 # WARNING: This script will ERASE ALL DATA on the target disk!
 
 set -e  # Exit on error
@@ -77,8 +77,8 @@ done
 
 echo ""
 echo "Installation Options:"
-echo "1) Install Arch Linux with KDE Plasma only"
-echo "2) Install Arch Linux with KDE Plasma + default apps"
+echo "1) Install Arch Linux with GNOME"
+echo "2) Install Arch Linux with GNOME + default apps"
 echo ""
 read -p "Choose an option (1 or 2): " INSTALL_OPTION
 
@@ -252,7 +252,7 @@ echo "Installing base system..."
 # "man" for manual pages
 # "sudo" to run commands as other users
 pacstrap -K /mnt base base-devel linux linux-firmware linux-headers linux-lts linux-lts-headers git btrfs-progs grub efibootmgr grub-btrfs inotify-tools timeshift vim networkmanager pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber reflector zsh zsh-completions zsh-autosuggestions openssh man sudo
-pacstrap -K /mnt konsole dolphin kate ark spectacle gwenview okular kcalc partitionmanager plasma-systemmonitor xclip
+pacstrap -K /mnt ark spectacle gwenview okular kcalc partitionmanager xclip dosfstools
 
 echo ""
 # ============================================================================
@@ -310,11 +310,11 @@ grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
 # Generate GRUB config
 grub-mkconfig -o /boot/grub/grub.cfg
 
-# Install display server
-pacman -S --noconfirm xorg
-
 # Install desktop environment
-pacman -S --noconfirm plasma sddm
+pacman -S --noconfirm gnome gnome-tweaks
+
+# Install GNOME Display manager
+pacman -S gdm --noconfirm
 
 # Install system utilities
 pacman -S --noconfirm sudo cronie
@@ -325,7 +325,7 @@ if lspci | grep -i nvidia; then
 fi
 
 # Enable display manager and NetworkManager
-systemctl enable sddm
+systemctl enable gdm
 systemctl enable NetworkManager
 
 # Create user (using bash as default shell - switch to zsh later with 'chsh -s /bin/zsh')
