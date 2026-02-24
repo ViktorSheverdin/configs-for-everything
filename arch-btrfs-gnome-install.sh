@@ -35,31 +35,41 @@ echo "==========================================="
 echo "Password Setup"
 echo "==========================================="
 echo ""
-echo "Enter a master password. This will be used for:"
-echo "  - LUKS disk encryption"
-echo "  - Root account"
-echo "  - $USERNAME account"
+echo "Let's set up passwords before we begin installation."
 echo ""
 
-# Get master password
+# Get root password
 while true; do
-    read -s -p "Enter master password: " MASTER_PASS
+    read -s -p "Enter root password: " ROOT_PASS
     echo ""
-    read -s -p "Confirm master password: " MASTER_PASS_CONFIRM
+    read -s -p "Confirm root password: " ROOT_PASS_CONFIRM
     echo ""
-
-    if [ -n "$MASTER_PASS" ] && [ "$MASTER_PASS" = "$MASTER_PASS_CONFIRM" ]; then
-        echo "✓ Master password confirmed!"
-        TMPPASS=$(mktemp)
-        echo -n "$MASTER_PASS" > "$TMPPASS"
+    
+    if [ -n "$ROOT_PASS" ] && [ "$ROOT_PASS" = "$ROOT_PASS_CONFIRM" ]; then
+        echo "✓ Root password confirmed!"
         break
-
     else
         echo "✗ Passwords do not match or are empty. Please try again."
         echo ""
     fi
 done
 
+# Get user password
+echo ""
+while true; do
+    read -s -p "Enter password for $USERNAME: " USER_PASS
+    echo ""
+    read -s -p "Confirm password for $USERNAME: " USER_PASS_CONFIRM
+    echo ""
+    
+    if [ -n "$USER_PASS" ] && [ "$USER_PASS" = "$USER_PASS_CONFIRM" ]; then
+        echo "✓ User password confirmed!"
+        break
+    else
+        echo "✗ Passwords do not match or are empty. Please try again."
+        echo ""
+    fi
+done
 
 # ============================================================================
 # Installation Options
@@ -95,11 +105,6 @@ read -p "Press Enter to continue or Ctrl+C to abort..."
 # ============================================================================
 # Partition the disk using sfdisk
 # ============================================================================
-
-# Clean up any previous run
-umount -R /mnt 2>/dev/null || true
-cryptsetup close cryptroot 2>/dev/null || true
-
 
 echo ""
 echo "Partitioning disk $DISK..."
@@ -149,15 +154,10 @@ echo "You will be prompted to enter a passphrase for disk encryption."
 # Wipe partition signatures
 wipefs -af "$ROOT_PART"
 
-# Format with LUKS using master password
-echo -n "$MASTER_PASS" | cryptsetup luksFormat -q "$ROOT_PART" -
+# Format with LUKS interactively
+cryptsetup luksFormat "$ROOT_PART"
 
-echo -n "$MASTER_PASS" | cryptsetup open "$ROOT_PART" cryptroot -
-
-# Enroll TPM2 for automatic unlock on boot (no passphrase prompt)
-echo ""
-echo "Enrolling TPM2 for automatic disk unlock..."
-echo -n "$MASTER_PASS" | systemd-cryptenroll --tpm2-device=auto --unlock-key-file=/dev/stdin "$ROOT_PART"
+cryptsetup open "$ROOT_PART" cryptroot
 
 # ============================================================================
 # Create btrfs filesystem and subvolumes
@@ -251,9 +251,8 @@ echo "Installing base system..."
 # "openssh" to use ssh and manage keys
 # "man" for manual pages
 # "sudo" to run commands as other users
-pacstrap -K /mnt base base-devel linux linux-firmware linux-headers linux-lts linux-lts-headers git btrfs-progs grub efibootmgr grub-btrfs inotify-tools timeshift vim networkmanager pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber reflector zsh zsh-completions zsh-autosuggestions openssh man sudo tpm2-tss
+pacstrap -K /mnt base base-devel linux linux-firmware linux-headers linux-lts linux-lts-headers git btrfs-progs grub efibootmgr grub-btrfs inotify-tools timeshift vim networkmanager pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber reflector zsh zsh-completions zsh-autosuggestions openssh man sudo
 pacstrap -K /mnt ark spectacle gwenview okular kcalc partitionmanager xclip dosfstools
-pacstrap -K /mnt nano
 
 echo ""
 # ============================================================================
@@ -271,12 +270,6 @@ genfstab -U -p /mnt >> /mnt/etc/fstab
 
 echo ""
 echo "Configuring system..."
-
-# Get btrfs filesystem UUID for Timeshift (must be done outside chroot)
-BTRFS_UUID=$(blkid -s UUID -o value /dev/mapper/cryptroot)
-cp "$TMPPASS" /mnt/tmp/master_pass
-chmod 600 /mnt/tmp/master_pass
-
 
 arch-chroot /mnt << CHROOT
 
@@ -308,7 +301,7 @@ mkinitcpio -P
 UUID=\$(blkid -s UUID -o value $ROOT_PART)
 
 # Update GRUB configuration
-sed -i "s|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 quiet rd.luks.name=\${UUID}=cryptroot rd.luks.options=tpm2-device=auto root=/dev/mapper/cryptroot rootflags=subvol=@\"|" /etc/default/grub
+sed -i "s|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 quiet rd.luks.name=\${UUID}=cryptroot root=/dev/mapper/cryptroot rootflags=subvol=@\"|" /etc/default/grub
 
 # Install GRUB to EFI partition
 grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
@@ -325,9 +318,6 @@ pacman -S gdm --noconfirm
 
 # Install system utilities
 pacman -S --noconfirm sudo cronie
-
-# Install bluetooth
-pacman -S bluez bluez-utils
 
 # Install Nvidia drivers if NVIDIA GPU is detected
 if lspci | grep -i nvidia; then
@@ -349,11 +339,10 @@ chmod 440 /etc/sudoers.d/wheel
 
 
 # Configure Timeshift for automatic snapshots
-# Note: in btrfs mode, Timeshift always saves to /@timeshift-btrfs on the selected partition
 mkdir -p /etc/timeshift
 cat > /etc/timeshift/timeshift.json << 'TIMESHIFT_EOF'
 {
-  "backup_device_uuid" : "$BTRFS_UUID",
+  "backup_device_uuid" : "",
   "parent_device_uuid" : "",
   "do_first_run" : "false",
   "btrfs_mode" : "true",
@@ -365,12 +354,12 @@ cat > /etc/timeshift/timeshift.json << 'TIMESHIFT_EOF'
   "schedule_weekly" : "false",
   "schedule_daily" : "true",
   "schedule_hourly" : "false",
-  "schedule_boot" : "true",
+  "schedule_boot" : "false",
   "count_monthly" : "0",
   "count_weekly" : "0",
-  "count_daily" : "5",
+  "count_daily" : "7",
   "count_hourly" : "0",
-  "count_boot" : "3",
+  "count_boot" : "0",
   "snapshot_size" : "0",
   "snapshot_count" : "0",
   "date_format" : "%Y-%m-%d %H:%M:%S",
@@ -379,28 +368,18 @@ cat > /etc/timeshift/timeshift.json << 'TIMESHIFT_EOF'
 }
 TIMESHIFT_EOF
 
-# Create initial snapshot
-timeshift --btrfs --create --comments "Post-install snapshot" --tags D
-
 # Enable services for snapshots
 systemctl enable cronie.service
 systemctl enable grub-btrfsd.service
-systemctl enable bluetooth
 
-# Add vi keys to tmux
-echo "set-window-option -g mode-keys vi" >> ~/.tmux.conf
 
 
 # Verify home directory ownership
 chown -R $USERNAME:$USERNAME /home/$USERNAME
 
-# Set passwords using chpasswd (master password for both)
-# echo "root:$MASTER_PASS" | chpasswd
-# echo "$USERNAME:$MASTER_PASS" | chpasswd
-CHROOT_PASS=$(cat /tmp/master_pass)
-echo "root:${CHROOT_PASS}" | chpasswd
-echo "$USERNAME:${CHROOT_PASS}" | chpasswd
-rm -f /tmp/master_pass
+# Set passwords using chpasswd (variables expanded from outer script)
+echo "root:$ROOT_PASS" | chpasswd
+echo "$USERNAME:$USER_PASS" | chpasswd
 
 echo "Passwords configured successfully!"
 
