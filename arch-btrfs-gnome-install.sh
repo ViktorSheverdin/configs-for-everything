@@ -153,7 +153,7 @@ echo -n "$MASTER_PASS" | cryptsetup open "$ROOT_PART" cryptroot -
 # Enroll TPM2 for automatic unlock on boot (no passphrase prompt)
 echo ""
 echo "Enrolling TPM2 for automatic disk unlock..."
-lecho -n "$MASTER_PASS" | systemd-cryptenroll --tpm2-device=auto --unlock-key-file=/dev/stdin "$ROOT_PART"
+echo -n "$MASTER_PASS" | systemd-cryptenroll --tpm2-device=auto --unlock-key-file=/dev/stdin "$ROOT_PART"
 
 # ============================================================================
 # Create btrfs filesystem and subvolumes
