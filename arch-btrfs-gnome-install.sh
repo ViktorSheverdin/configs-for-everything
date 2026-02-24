@@ -57,6 +57,13 @@ while true; do
     fi
 done
 
+    if [ -n "$MASTER_PASS" ] && [ "$MASTER_PASS" = "$MASTER_PASS_CONFIRM" ]; then
+        echo "✓ Master password confirmed!"
+        TMPPASS=$(mktemp)
+        echo -n "$MASTER_PASS" > "$TMPPASS"
+        break
+
+
 # ============================================================================
 # Installation Options
 # ============================================================================
@@ -153,7 +160,7 @@ echo -n "$MASTER_PASS" | cryptsetup open "$ROOT_PART" cryptroot -
 # Enroll TPM2 for automatic unlock on boot (no passphrase prompt)
 echo ""
 echo "Enrolling TPM2 for automatic disk unlock..."
-# echo -n "$MASTER_PASS" | systemd-cryptenroll --tpm2-device=auto --unlock-key-file=/dev/stdin "$ROOT_PART"
+echo -n "$MASTER_PASS" | systemd-cryptenroll --tpm2-device=auto --unlock-key-file=/dev/stdin "$ROOT_PART"
 
 # ============================================================================
 # Create btrfs filesystem and subvolumes
@@ -270,6 +277,9 @@ echo "Configuring system..."
 
 # Get btrfs filesystem UUID for Timeshift (must be done outside chroot)
 BTRFS_UUID=$(blkid -s UUID -o value /dev/mapper/cryptroot)
+cp "$TMPPASS" /mnt/tmp/master_pass
+chmod 600 /mnt/tmp/master_pass
+
 
 arch-chroot /mnt << CHROOT
 
@@ -388,8 +398,12 @@ echo "set-window-option -g mode-keys vi" >> ~/.tmux.conf
 chown -R $USERNAME:$USERNAME /home/$USERNAME
 
 # Set passwords using chpasswd (master password for both)
-echo "root:$MASTER_PASS" | chpasswd
-echo "$USERNAME:$MASTER_PASS" | chpasswd
+# echo "root:$MASTER_PASS" | chpasswd
+# echo "$USERNAME:$MASTER_PASS" | chpasswd
+CHROOT_PASS=$(cat /tmp/master_pass)
+echo "root:${CHROOT_PASS}" | chpasswd
+echo "$USERNAME:${CHROOT_PASS}" | chpasswd
+rm -f /tmp/master_pass
 
 echo "Passwords configured successfully!"
 
