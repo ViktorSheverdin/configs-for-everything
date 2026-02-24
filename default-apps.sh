@@ -28,8 +28,8 @@ if command -v yay &> /dev/null; then
 else
     echo "Installing yay AUR helper..."
 
-    # Install base-devel and git if not already installed (as root - OK)
-    pacman -S --needed --noconfirm base-devel git
+    # Install base-devel and git if not already installed
+    pacman -S --needed --noconfirm base-devel git  # pacman required here since yay isn't installed yet
 
     # Install yay as the user (NOT root)
     sudo -u $USERNAME bash << 'EOFYAY'
@@ -60,13 +60,13 @@ fi
 echo "Installing applications..."
 echo ""
 
-# Install git, GitHub CLI, and zsh from official repos (as root - OK)
+# Install git, GitHub CLI, and zsh
 echo "Installing git, GitHub CLI, and zsh..."
-sudo pacman -S --noconfirm git github-cli zsh
-sudo pacman -S --noconfirm --needed gcc make git ripgrep fd unzip neovim
-# Install npm, yarn, pnpm, nodejs, python (as root - OK)
+sudo -u $USERNAME yay -S --noconfirm git github-cli zsh
+sudo -u $USERNAME yay -S --noconfirm --needed gcc make git ripgrep fd unzip neovim
+# Install npm, yarn, pnpm, nodejs, python
 echo "Installing Node.js tools and Python..."
-pacman -S --noconfirm npm yarn pnpm nodejs python
+sudo -u $USERNAME yay -S --noconfirm npm yarn pnpm nodejs python
 
 
 # Install Oh My Zsh as the user
@@ -82,18 +82,6 @@ fi
 # Change default shell to zsh
 echo "Changing default shell to zsh for $USERNAME..."
 chsh -s /usr/bin/zsh $USERNAME
-
-# Create Konsole profile directory and file as the user
-sudo -u $USERNAME bash << 'EOFKONSOLE'
-mkdir -p /home/$USERNAME/.local/share/konsole
-cat > /home/$USERNAME/.local/share/konsole/viktor-zsh.profile << 'KONSOLE_EOF'
-[General]
-Command=/usr/bin/zsh
-Name=viktor-zsh
-Parent=FALLBACK/
-KONSOLE_EOF
-EOFKONSOLE
-
 
 # Install AUR packages as the user
 echo "Installing Google Chrome..."
@@ -132,11 +120,10 @@ echo "Display Link drivers installed and service started. Service status:"
 systemctl status displaylink.service --no-pager
 
 echo "Installing btop system monitor..."
-pacman -S --noconfirm btop
+sudo -u $USERNAME yay -S --noconfirm btop
 
-# Install openssh (as root - OK)
 echo "Installing openssh..."
-pacman -S --noconfirm openssh
+sudo -u $USERNAME yay -S --noconfirm openssh
 
 # Setup SSH known_hosts as the user
 sudo -u $USERNAME bash << 'EOFSSH'

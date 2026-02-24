@@ -6,7 +6,7 @@ If you see files named id_rsa.pub or id_ed25519.pub, you have existing keys. You
 
 # Step 2: Generate a New SSH Key
 
-`ssh-keygen -t ed25519 -C "your_email@example.com"`
+`ssh-keygen -t ed25519 -C "viktor.sheverdin@gmail.com"`
 
 # Step 3: Add Your SSH Key to the SSH Agent
 
