@@ -35,35 +35,21 @@ echo "==========================================="
 echo "Password Setup"
 echo "==========================================="
 echo ""
-echo "Let's set up passwords before we begin installation."
+echo "Enter a master password. This will be used for:"
+echo "  - LUKS disk encryption"
+echo "  - Root account"
+echo "  - $USERNAME account"
 echo ""
 
-# Get root password
+# Get master password
 while true; do
-    read -s -p "Enter root password: " ROOT_PASS
+    read -s -p "Enter master password: " MASTER_PASS
     echo ""
-    read -s -p "Confirm root password: " ROOT_PASS_CONFIRM
+    read -s -p "Confirm master password: " MASTER_PASS_CONFIRM
     echo ""
-    
-    if [ -n "$ROOT_PASS" ] && [ "$ROOT_PASS" = "$ROOT_PASS_CONFIRM" ]; then
-        echo "✓ Root password confirmed!"
-        break
-    else
-        echo "✗ Passwords do not match or are empty. Please try again."
-        echo ""
-    fi
-done
 
-# Get user password
-echo ""
-while true; do
-    read -s -p "Enter password for $USERNAME: " USER_PASS
-    echo ""
-    read -s -p "Confirm password for $USERNAME: " USER_PASS_CONFIRM
-    echo ""
-    
-    if [ -n "$USER_PASS" ] && [ "$USER_PASS" = "$USER_PASS_CONFIRM" ]; then
-        echo "✓ User password confirmed!"
+    if [ -n "$MASTER_PASS" ] && [ "$MASTER_PASS" = "$MASTER_PASS_CONFIRM" ]; then
+        echo "✓ Master password confirmed!"
         break
     else
         echo "✗ Passwords do not match or are empty. Please try again."
@@ -154,15 +140,15 @@ echo "You will be prompted to enter a passphrase for disk encryption."
 # Wipe partition signatures
 wipefs -af "$ROOT_PART"
 
-# Format with LUKS interactively
-cryptsetup luksFormat "$ROOT_PART"
+# Format with LUKS using master password
+echo -n "$MASTER_PASS" | cryptsetup luksFormat -q "$ROOT_PART" -
 
-cryptsetup open "$ROOT_PART" cryptroot
+echo -n "$MASTER_PASS" | cryptsetup open "$ROOT_PART" cryptroot -
 
 # Enroll TPM2 for automatic unlock on boot (no passphrase prompt)
 echo ""
 echo "Enrolling TPM2 for automatic disk unlock..."
-systemd-cryptenroll --tpm2-device=auto "$ROOT_PART"
+echo -n "$MASTER_PASS" | systemd-cryptenroll --tpm2-device=auto "$ROOT_PART"
 
 # ============================================================================
 # Create btrfs filesystem and subvolumes
@@ -396,9 +382,9 @@ echo "set-window-option -g mode-keys vi" >> ~/.tmux.conf
 # Verify home directory ownership
 chown -R $USERNAME:$USERNAME /home/$USERNAME
 
-# Set passwords using chpasswd (variables expanded from outer script)
-echo "root:$ROOT_PASS" | chpasswd
-echo "$USERNAME:$USER_PASS" | chpasswd
+# Set passwords using chpasswd (master password for both)
+echo "root:$MASTER_PASS" | chpasswd
+echo "$USERNAME:$MASTER_PASS" | chpasswd
 
 echo "Passwords configured successfully!"
 
