@@ -92,6 +92,11 @@ read -p "Press Enter to continue or Ctrl+C to abort..."
 # Partition the disk using sfdisk
 # ============================================================================
 
+# Clean up any previous run
+umount -R /mnt 2>/dev/null || true
+cryptsetup close cryptroot 2>/dev/null || true
+
+
 echo ""
 echo "Partitioning disk $DISK..."
 
