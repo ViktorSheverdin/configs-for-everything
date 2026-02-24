@@ -1,0 +1,37 @@
+## Sessions
+### Open tmux session (-s for session name)
+tmux new -s <session_name>
+### Attach to session (-t to target)
+tmux a -t <session_name>
+### Rename session
+C+B $
+### Detach
+C+B d
+### Session and Window Preview
+C+B w
+
+## Windows
+### Create Window
+C+B c
+### Rename window
+C+B ,
+### Close current window 
+C+B & (& for end window)
+### Navigate windows
+C+B p OR C+B n OR C+B 0...9
+
+## Panes
+### Add vertical pane
+C+B %
+### Add horizontal pane
+C+B "
+### Close pane
+C+B x OR exit
+### Navigate pane
+C+B q 0...9 OR C+B <arrow>
+### Pane layout
+C+B Spacebar OR C+B Super 1...5
+### Pane size
+C+B Super (hold) <arrow>
+### Scroll mode
+C+B [ TO EXIT Esc

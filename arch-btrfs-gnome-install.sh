@@ -253,6 +253,7 @@ echo "Installing base system..."
 # "sudo" to run commands as other users
 pacstrap -K /mnt base base-devel linux linux-firmware linux-headers linux-lts linux-lts-headers git btrfs-progs grub efibootmgr grub-btrfs inotify-tools timeshift vim networkmanager pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber reflector zsh zsh-completions zsh-autosuggestions openssh man sudo
 pacstrap -K /mnt ark spectacle gwenview okular kcalc partitionmanager xclip dosfstools
+pacstrap -K /mnt nano
 
 echo ""
 # ============================================================================
@@ -319,6 +320,9 @@ pacman -S gdm --noconfirm
 # Install system utilities
 pacman -S --noconfirm sudo cronie
 
+# Install bluetooth
+pacman -S bluez bluez-utils
+
 # Install Nvidia drivers if NVIDIA GPU is detected
 if lspci | grep -i nvidia; then
     pacman -S --noconfirm nvidia nvidia-utils intel-media-driver
@@ -371,7 +375,10 @@ TIMESHIFT_EOF
 # Enable services for snapshots
 systemctl enable cronie.service
 systemctl enable grub-btrfsd.service
+systemctl enable bluetooth
 
+# Add vi keys to tmux
+echo "set-window-option -g mode-keys vi" >> ~/.tmux.conf
 
 
 # Verify home directory ownership

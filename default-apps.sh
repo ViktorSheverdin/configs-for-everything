@@ -63,7 +63,7 @@ echo ""
 # Install git, GitHub CLI, and zsh from official repos (as root - OK)
 echo "Installing git, GitHub CLI, and zsh..."
 sudo pacman -S --noconfirm git github-cli zsh
-
+sudo pacman -S --noconfirm --needed gcc make git ripgrep fd unzip neovim
 # Install npm, yarn, pnpm, nodejs, python (as root - OK)
 echo "Installing Node.js tools and Python..."
 pacman -S --noconfirm npm yarn pnpm nodejs python
