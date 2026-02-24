@@ -159,6 +159,11 @@ cryptsetup luksFormat "$ROOT_PART"
 
 cryptsetup open "$ROOT_PART" cryptroot
 
+# Enroll TPM2 for automatic unlock on boot (no passphrase prompt)
+echo ""
+echo "Enrolling TPM2 for automatic disk unlock..."
+systemd-cryptenroll --tpm2-device=auto "$ROOT_PART"
+
 # ============================================================================
 # Create btrfs filesystem and subvolumes
 # ============================================================================
@@ -251,7 +256,7 @@ echo "Installing base system..."
 # "openssh" to use ssh and manage keys
 # "man" for manual pages
 # "sudo" to run commands as other users
-pacstrap -K /mnt base base-devel linux linux-firmware linux-headers linux-lts linux-lts-headers git btrfs-progs grub efibootmgr grub-btrfs inotify-tools timeshift vim networkmanager pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber reflector zsh zsh-completions zsh-autosuggestions openssh man sudo
+pacstrap -K /mnt base base-devel linux linux-firmware linux-headers linux-lts linux-lts-headers git btrfs-progs grub efibootmgr grub-btrfs inotify-tools timeshift vim networkmanager pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber reflector zsh zsh-completions zsh-autosuggestions openssh man sudo tpm2-tss
 pacstrap -K /mnt ark spectacle gwenview okular kcalc partitionmanager xclip dosfstools
 pacstrap -K /mnt nano
 
@@ -271,6 +276,9 @@ genfstab -U -p /mnt >> /mnt/etc/fstab
 
 echo ""
 echo "Configuring system..."
+
+# Get btrfs filesystem UUID for Timeshift (must be done outside chroot)
+BTRFS_UUID=$(blkid -s UUID -o value /dev/mapper/cryptroot)
 
 arch-chroot /mnt << CHROOT
 
@@ -302,7 +310,7 @@ mkinitcpio -P
 UUID=\$(blkid -s UUID -o value $ROOT_PART)
 
 # Update GRUB configuration
-sed -i "s|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 quiet rd.luks.name=\${UUID}=cryptroot root=/dev/mapper/cryptroot rootflags=subvol=@\"|" /etc/default/grub
+sed -i "s|^GRUB_CMDLINE_LINUX_DEFAULT=.*|GRUB_CMDLINE_LINUX_DEFAULT=\"loglevel=3 quiet rd.luks.name=\${UUID}=cryptroot rd.luks.options=tpm2-device=auto root=/dev/mapper/cryptroot rootflags=subvol=@\"|" /etc/default/grub
 
 # Install GRUB to EFI partition
 grub-install --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=GRUB
@@ -343,10 +351,11 @@ chmod 440 /etc/sudoers.d/wheel
 
 
 # Configure Timeshift for automatic snapshots
+# Note: in btrfs mode, Timeshift always saves to /@timeshift-btrfs on the selected partition
 mkdir -p /etc/timeshift
 cat > /etc/timeshift/timeshift.json << 'TIMESHIFT_EOF'
 {
-  "backup_device_uuid" : "",
+  "backup_device_uuid" : "$BTRFS_UUID",
   "parent_device_uuid" : "",
   "do_first_run" : "false",
   "btrfs_mode" : "true",
@@ -358,12 +367,12 @@ cat > /etc/timeshift/timeshift.json << 'TIMESHIFT_EOF'
   "schedule_weekly" : "false",
   "schedule_daily" : "true",
   "schedule_hourly" : "false",
-  "schedule_boot" : "false",
+  "schedule_boot" : "true",
   "count_monthly" : "0",
   "count_weekly" : "0",
-  "count_daily" : "7",
+  "count_daily" : "5",
   "count_hourly" : "0",
-  "count_boot" : "0",
+  "count_boot" : "3",
   "snapshot_size" : "0",
   "snapshot_count" : "0",
   "date_format" : "%Y-%m-%d %H:%M:%S",
@@ -371,6 +380,9 @@ cat > /etc/timeshift/timeshift.json << 'TIMESHIFT_EOF'
   "exclude-apps" : []
 }
 TIMESHIFT_EOF
+
+# Create initial snapshot
+timeshift --btrfs --create --comments "Post-install snapshot" --tags D
 
 # Enable services for snapshots
 systemctl enable cronie.service
