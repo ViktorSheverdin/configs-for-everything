@@ -50,18 +50,15 @@ while true; do
 
     if [ -n "$MASTER_PASS" ] && [ "$MASTER_PASS" = "$MASTER_PASS_CONFIRM" ]; then
         echo "✓ Master password confirmed!"
+        TMPPASS=$(mktemp)
+        echo -n "$MASTER_PASS" > "$TMPPASS"
         break
+
     else
         echo "✗ Passwords do not match or are empty. Please try again."
         echo ""
     fi
 done
-
-    if [ -n "$MASTER_PASS" ] && [ "$MASTER_PASS" = "$MASTER_PASS_CONFIRM" ]; then
-        echo "✓ Master password confirmed!"
-        TMPPASS=$(mktemp)
-        echo -n "$MASTER_PASS" > "$TMPPASS"
-        break
 
 
 # ============================================================================
