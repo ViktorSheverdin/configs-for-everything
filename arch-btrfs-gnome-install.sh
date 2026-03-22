@@ -54,23 +54,6 @@ while true; do
     fi
 done
 
-# Get user password
-echo ""
-while true; do
-    read -s -p "Enter password for $USERNAME: " USER_PASS
-    echo ""
-    read -s -p "Confirm password for $USERNAME: " USER_PASS_CONFIRM
-    echo ""
-
-    if [ -n "$USER_PASS" ] && [ "$USER_PASS" = "$USER_PASS_CONFIRM" ]; then
-        echo "✓ User password confirmed!"
-        break
-    else
-        echo "✗ Passwords do not match or are empty. Please try again."
-        echo ""
-    fi
-done
-
 # ============================================================================
 # Installation Options
 # ============================================================================
@@ -409,7 +392,7 @@ chown -R $USERNAME:$USERNAME /home/$USERNAME
 
 # Set passwords using chpasswd (variables expanded from outer script)
 echo "root:$ROOT_PASS" | chpasswd
-echo "$USERNAME:$USER_PASS" | chpasswd
+echo "$USERNAME:$ROOT_PASS" | chpasswd
 
 echo "Passwords configured successfully!"
 
