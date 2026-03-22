@@ -44,7 +44,7 @@ while true; do
     echo ""
     read -s -p "Confirm root password: " ROOT_PASS_CONFIRM
     echo ""
-    
+
     if [ -n "$ROOT_PASS" ] && [ "$ROOT_PASS" = "$ROOT_PASS_CONFIRM" ]; then
         echo "✓ Root password confirmed!"
         break
@@ -61,7 +61,7 @@ while true; do
     echo ""
     read -s -p "Confirm password for $USERNAME: " USER_PASS_CONFIRM
     echo ""
-    
+
     if [ -n "$USER_PASS" ] && [ "$USER_PASS" = "$USER_PASS_CONFIRM" ]; then
         echo "✓ User password confirmed!"
         break
@@ -253,7 +253,7 @@ echo "Installing base system..."
 # "sudo" to run commands as other users
 pacstrap -K /mnt base base-devel linux linux-firmware linux-headers linux-lts linux-lts-headers git btrfs-progs grub efibootmgr grub-btrfs inotify-tools timeshift vim networkmanager pipewire pipewire-alsa pipewire-pulse pipewire-jack wireplumber reflector zsh zsh-completions zsh-autosuggestions openssh man sudo
 pacstrap -K /mnt ark spectacle gwenview okular kcalc partitionmanager xclip dosfstools
-
+pacstrap -K /mnt bluez bluez-utils
 echo ""
 # ============================================================================
 # Generate fstab
@@ -369,9 +369,39 @@ cat > /etc/timeshift/timeshift.json << 'TIMESHIFT_EOF'
 TIMESHIFT_EOF
 
 # Enable services for snapshots
-systemctl enable cronie.service
+
+# 1. Create the service unit
+  sudo tee /etc/systemd/system/timeshift-check.service << 'EOF'                                                                             
+  [Unit]          
+  Description=Timeshift scheduled snapshot check
+
+  [Service]
+  Type=oneshot
+  ExecStart=/usr/bin/timeshift --check --scripted
+  EOF
+
+  # 2. Create the timer unit
+  sudo tee /etc/systemd/system/timeshift-check.timer << 'EOF'
+  [Unit]
+  Description=Timeshift scheduled snapshot check timer
+
+  [Timer]
+  OnCalendar=hourly
+  Persistent=true
+
+  [Install]
+  WantedBy=timers.target
+  EOF
+
+  # 3. Enable the timer
+  sudo systemctl daemon-reload
+  sudo systemctl enable --now timeshift-check.timer
+
+
 systemctl enable grub-btrfsd.service
 
+# Enable Bluetooth
+systemctl enable bluetooth
 
 
 # Verify home directory ownership
@@ -391,11 +421,11 @@ if [[ "$INSTALL_OPTION" == "2" ]]; then
     echo ""
     echo "Installing default applications..."
     echo ""
-    
+
     curl -L https://raw.githubusercontent.com/ViktorSheverdin/configs-for-everything/main/default-apps.sh -o /tmp/default-apps.sh
     chmod +x /tmp/default-apps.sh
     bash /tmp/default-apps.sh
-    
+
     echo ""
     echo "Default applications installed!"
 fi
