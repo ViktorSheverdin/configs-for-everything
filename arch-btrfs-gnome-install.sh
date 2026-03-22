@@ -9,7 +9,12 @@ set -e  # Exit on error
 # Configuration Variables - MODIFY THESE BEFORE RUNNING
 # ============================================================================
 
-DISK="/dev/nvme0n1"              # Target disk (e.g., /dev/sda, /dev/nvme0n1)
+DISK=$(lsblk -d -p -n -o NAME | grep -E '/dev/(sd|nvme|vd)' | head -1)
+if [[ -z "$DISK" ]]; then
+    echo "ERROR: No suitable disk found!"
+    exit 1
+fi
+
 HOSTNAME="arch"            # System hostname
 USERNAME="viktor"              # Username to create
 TIMEZONE="America/Vancouver"     # Timezone (see /usr/share/zoneinfo/)
