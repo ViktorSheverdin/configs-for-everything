@@ -326,6 +326,21 @@ echo "%wheel ALL=(ALL:ALL) ALL" > /etc/sudoers.d/wheel
 chmod 440 /etc/sudoers.d/wheel
 
 
+systemctl enable grub-btrfsd.service
+
+# Enable Bluetooth
+systemctl enable bluetooth
+
+
+# Verify home directory ownership
+chown -R $USERNAME:$USERNAME /home/$USERNAME
+
+# Set passwords using chpasswd (variables expanded from outer script)
+echo "root:$ROOT_PASS" | chpasswd
+echo "$USERNAME:$ROOT_PASS" | chpasswd
+
+echo "Passwords configured successfully!"
+
 # Configure Timeshift for automatic snapshots
 mkdir -p /etc/timeshift
 cat > /etc/timeshift/timeshift.json << 'TIMESHIFT_EOF'
@@ -385,21 +400,6 @@ TIMESHIFT_EOF
   sudo systemctl daemon-reload
   sudo systemctl enable --now timeshift-check.timer
 
-
-systemctl enable grub-btrfsd.service
-
-# Enable Bluetooth
-systemctl enable bluetooth
-
-
-# Verify home directory ownership
-chown -R $USERNAME:$USERNAME /home/$USERNAME
-
-# Set passwords using chpasswd (variables expanded from outer script)
-echo "root:$ROOT_PASS" | chpasswd
-echo "$USERNAME:$ROOT_PASS" | chpasswd
-
-echo "Passwords configured successfully!"
 
 # ============================================================================
 # Install default apps if selected (MOVE THIS INSIDE THE CHROOT)
