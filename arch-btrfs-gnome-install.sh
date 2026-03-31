@@ -374,31 +374,31 @@ TIMESHIFT_EOF
 # Enable services for snapshots
 
 # 1. Create the service unit
-  sudo tee /etc/systemd/system/timeshift-check.service << 'EOF'                                                                             
-  [Unit]          
-  Description=Timeshift scheduled snapshot check
+cat > /etc/systemd/system/timeshift-check.service << 'SERVICEFILE'
+[Unit]
+Description=Timeshift scheduled snapshot check
 
-  [Service]
-  Type=oneshot
-  ExecStart=/usr/bin/timeshift --check --scripted
-  EOF
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/timeshift --check --scripted
+SERVICEFILE
 
-  # 2. Create the timer unit
-  sudo tee /etc/systemd/system/timeshift-check.timer << 'EOF'
-  [Unit]
-  Description=Timeshift scheduled snapshot check timer
+# 2. Create the timer unit
+cat > /etc/systemd/system/timeshift-check.timer << 'TIMERFILE'
+[Unit]
+Description=Timeshift scheduled snapshot check timer
 
-  [Timer]
-  OnCalendar=hourly
-  Persistent=true
+[Timer]
+OnCalendar=hourly
+Persistent=true
 
-  [Install]
-  WantedBy=timers.target
-  EOF
+[Install]
+WantedBy=timers.target
+TIMERFILE
 
-  # 3. Enable the timer
-  sudo systemctl daemon-reload
-  sudo systemctl enable --now timeshift-check.timer
+# 3. Enable the timer
+systemctl daemon-reload
+systemctl enable --now timeshift-check.timer
 
 
 # ============================================================================
