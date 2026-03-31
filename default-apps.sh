@@ -120,6 +120,13 @@ set-window-option -g mode-keys vi
 run '~/.tmux/plugins/tpm/tpm'
 EOF
 
+# Terminal utilities
+# GNU stow - save dotfiles
+sudo pacman -S stow
+
+# fzf - fuzzy finder for terminal
+sudo pacman -S fzf
+
 echo "Installing Discord..."
 sudo -u $USERNAME yay -S --noconfirm discord
 
