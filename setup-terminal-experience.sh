@@ -1,6 +1,13 @@
 #!/bin/bash
 # Install WezTerm
-yay -S wezterm zsh-autosuggestions eza zoxide thefuck ripgrep
+yay -S wezterm zsh-autosuggestions eza zoxide thefuck ripgrep fzf fd bat tldr zoxide yazi ffmpegthumbnailer ffmpeg sevenzip jq poppler imagemagick --noconfirm
+
+# Clone fzf-git for better support with git
+git clone https://github.com/junegunn/fzf-git.sh.git
+# Install theme for bat
+mkdir -p "$(bat --config-dir)/themes"
+curl --create-dirs --output-dir "$(bat --config-dir)/themes" -O https://raw.githubusercontent.com/folke/tokyonight.nvim/main/extras/sublime/tokyonight_night.tmTheme
+bat cache --build
 
 # Install nerd fonts
 # Create shared fonts dir
