@@ -5,9 +5,12 @@
 brew install wezterm zsh-autosuggestions eza zoxide thefuck ripgrep fzf fd \
   bat tldr zoxide yazi ffmpegthumbnailer ffmpeg sevenzip jq poppler \
   imagemagick zsh-autosuggestions zsh-syntax-highlighting \
-  zsh-theme-powerlevel10k-git node git github-cli neovim tree-sitter-cli \
+  node git neovim tree-sitter-cli \
   gcc make yarn python npm tmux stow
 
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
+echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrcgit clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
+echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrc
 # Clone fzf-git for better support with git
 git clone https://github.com/junegunn/fzf-git.sh.git
 # Install theme for bat
