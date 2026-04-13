@@ -8,9 +8,6 @@ brew install wezterm zsh-autosuggestions eza zoxide thefuck ripgrep fzf fd \
   node git neovim tree-sitter-cli \
   gcc make yarn python npm tmux stow
 
-git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
-echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrcgit clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
-echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrc
 # Clone fzf-git for better support with git
 git clone https://github.com/junegunn/fzf-git.sh.git
 # Install theme for bat
@@ -26,13 +23,19 @@ else
   sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
   EOFOMZ
 fi
+
+# Install powerlevel10k theme
+git clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
+echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrcgit clone --depth=1 https://github.com/romkatv/powerlevel10k.git ~/powerlevel10k
+echo 'source ~/powerlevel10k/powerlevel10k.zsh-theme' >>~/.zshrc
+
 # Install nerd fonts
 # Create shared fonts dir
 mkdir -p ~/.local/share/fonts
-curl -L https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf --output ~/.local/share/fonts/MesloLGSNF-Regular.ttf
-curl -L https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf --output ~/.local/share/fonts/MesloLGSNF-Bold.ttf
-curl -L https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf --output ~/.local/share/fonts/MesloLGSNF-Italic.ttf
-curl -L https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20BoldItalic.ttf --output ~/.local/share/fonts/MesloLGSNF-BoldItalic.ttf
+curl -L https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf --output ~/Library/Fonts/MesloLGSNF-Regular.ttf
+curl -L https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf --output ~/Library/Fonts/MesloLGSNF-Bold.ttf
+curl -L https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf --output ~/Library/Fonts/MesloLGSNF-Italic.ttf
+curl -L https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20BoldItalic.ttf --output ~/Library/Fonts/MesloLGSNF-BoldItalic.ttf
 
 # get dotfiles
 git clone git@github.com:ViktorSheverdin/dotfiles.git
@@ -42,8 +45,8 @@ stow .
 # Install plugins
 
 # Symlink into Oh My Zsh
-ln -sf /usr/share/zsh/plugins/zsh-autosuggestions ${ZSH:-$HOME/.oh-my-zsh}/custom/plugins/zsh-autosuggestions
-ln -sf /usr/share/zsh/plugins/zsh-syntax-highlighting ${ZSH:-$HOME/.oh-my-zsh}/custom/plugins/zsh-syntax-highlighting
+ln -sf $(brew --prefix)/share/zsh-autosuggestions ${ZSH:-$HOME/.oh-my-zsh}/custom/plugins/zsh-autosuggestions
+ln -sf $(brew --prefix)/share/zsh-syntax-highlighting ${ZSH:-$HOME/.oh-my-zsh}/custom/plugins/zsh-syntax-highlighting
 
 # Homebrew
 # brew install powerlevel10k
